@@ -54,42 +54,11 @@ class Network:
         return 1.0 / (1 + np.exp(-x))
 
         
-    def training_batch(self, batch):
-        W1_delta = None
-        W2_delta = None
-
-        for i in range(len(batch.index)):
-            entry = batch.iloc[i]
-            W1, W2 = self.train(entry[:784], self.parse_output(int(entry['correct_output'])))
-            if W1_delta == None:
-                W1_delta = W1
-                W2_delta = W2
-            else:
-                W1_delta += W1
-                W2_delta += W2
-        
-        self.W1 += W1_delta
-        self.W2 += W2_delta
-
 
     def parse_output(self, num):
         out = np.zeros(10)
-        out[num] = 1
+        out[int(num)] = 1
         return out
-
-    def stochastic_gradient_descent(self, training_df, batch_size):
-        
-        # the data is already randomly shuffled, so we chilling on that front
-        
-        if (len(training_df) % batch_size != 0):
-            raise Exception("Need evenly split batches")
-        
-        num_batches = int(len(training_df) / batch_size)
-
-        for i in range(num_batches):
-            print(f"Starting batch number: {i}")
-            batch = training_df.iloc[batch_size * i : batch_size * (i+1)].reset_index()
-            self.training_batch(batch)
 
 
 def main():
@@ -100,7 +69,12 @@ def main():
     training_data_df['correct_output'] = training_data[1]
     
     neural_network = Network()
-    neural_network.stochastic_gradient_descent(training_data_df, 500)
+
+    observation = training_data_df.iloc[1]
+    observation_X = observation[:784]
+    observation_y = neural_network.parse_output(observation['correct_output'])
+
+    neural_network.train(observation_X, observation_y)
 
 
 if __name__ == '__main__':
