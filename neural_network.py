@@ -20,11 +20,11 @@ class Network:
 
     def forward_propogation(self, X):
         self.z = np.dot(X, self.W1) # hidden layer  pre activation. (1x784) dot (784x16) = (1x16)
-        self.a = self.sigmoid(self.z) # hidden layer 
-        self.z2 = np.dot(self.a, self.W2) # output pre activation (1x16) dot (16x10) = (1x10)
-        self.output = self.sigmoid(self.z2) # output
+        self.hidden = self.sigmoid(self.z) # hidden layer 
+        self.z2 = np.dot(self.hidden, self.W2) # output pre activation (1x16) dot (16x10) = (1x10)
+        output = self.sigmoid(self.z2) # output
 
-        return self.output
+        return output
 
 
     def back_propogation(self, X, y, output):
@@ -32,12 +32,12 @@ class Network:
         self.output_error = y - output # error in output
         self.output_delta = self.output_error * self.sigmoid(output, derivative=True)
 
-        self.a_error = self.output_delta.dot(self.W2.T) # contribution of hidden layer to output eror
-        self.a_delta = self.a_error * self.sigmoid(self.a, derivative=True)
+        self.hidden_error = self.output_delta.dot(self.W2.T) # contribution of hidden layer to output eror
+        self.hidden_delta = self.hidden_error * self.sigmoid(self.hidden, derivative=True)
 
 
-        W1_delta = X.T.dot(self.a_delta)
-        W2_delta = self.a.T.dot(self.output_delta)
+        W1_delta = X.T.dot(self.hidden_delta)
+        W2_delta = self.hidden.T.dot(self.output_delta)
 
         return W1_delta, W2_delta,
 
@@ -60,7 +60,7 @@ class Network:
 
         for i in range(len(batch.index)):
             entry = batch.iloc[i]
-            W1, W2, W3 = self.train(entry[:784], self.parse_output(int(entry['correct_output'])))
+            W1, W2 = self.train(entry[:784], self.parse_output(int(entry['correct_output'])))
             if W1_delta == None:
                 W1_delta = W1
                 W2_delta = W2
